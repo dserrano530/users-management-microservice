@@ -28,9 +28,8 @@ El archivo `render.yaml` define el servicio web, el build con Docker y el despli
 automático de cada commit que llegue a la rama `main`.
 
 1. Crear un Blueprint en Render y seleccionar este repositorio.
-2. Completar en el panel los secretos marcados como requeridos: `DB_HOST`,
-   `DB_USERNAME`, `DB_PASSWORD`, `SMTP_USERNAME`, `SMTP_PASSWORD` y
-   `SMTP_FROM_ADDRESS`.
+2. Completar en el panel `DB_HOST`, `DB_PORT`, `DB_USERNAME` y `DB_PASSWORD`.
+   Render genera `JWT_SECRET` al crear el servicio.
 3. Usar una instancia MySQL accesible desde Internet o desde la red privada de
    Render y ejecutar `src/main/resources/schema.sql` una vez para crear el esquema.
 4. Desplegar el Blueprint. La API quedará disponible en el subdominio
@@ -38,3 +37,7 @@ automático de cada commit que llegue a la rama `main`.
 
 Las credenciales nunca deben guardarse en `application.properties` ni en
 `render.yaml`. Para desarrollo local, deben proporcionarse como variables de entorno.
+
+Render Free bloquea los puertos SMTP 25, 465 y 587. Las notificaciones SMTP se
+omiten si `SMTP_FROM_ADDRESS` está vacío. Para crear usuarios mediante
+`POST /api/users` se requiere un token de administrador.

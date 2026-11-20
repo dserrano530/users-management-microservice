@@ -3,6 +3,7 @@ services:
     name: users-management-api
     runtime: docker
     plan: free
+    region: virginia
     branch: main
     autoDeployTrigger: commit
     healthCheckPath: /health
@@ -19,18 +20,6 @@ services:
         sync: false
       - key: DB_SSL_MODE
         value: VERIFY_IDENTITY
-      - key: SMTP_HOST
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USERNAME
-        sync: false
-      - key: SMTP_PASSWORD
-        sync: false
-      - key: SMTP_FROM_ADDRESS
-        sync: false
-      - key: SMTP_FROM_NAME
-        value: Gestion de Usuarios
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION_SECONDS

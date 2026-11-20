@@ -90,6 +90,7 @@ class UserRestControllerTest {
   }
 
   @Test
+  @WithMockUser(roles = "ADMIN")
   @DisplayName("POST /api/users debe crear un usuario válido")
   void shouldCreateUserThroughSpringMvc() throws Exception {
     final String request =
@@ -194,6 +195,7 @@ class UserRestControllerTest {
   }
 
   @Test
+  @WithMockUser(roles = "ADMIN")
   @DisplayName("POST /api/users debe rechazar una solicitud inválida antes del caso de uso")
   void shouldRejectInvalidCreateRequest() throws Exception {
     // Arrange
@@ -213,6 +215,19 @@ class UserRestControllerTest {
         .perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(invalidRequest))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400));
+  }
+
+  @Test
+  @DisplayName("POST /api/users debe exigir autenticación")
+  void shouldRequireAuthenticationToCreateUsers() throws Exception {
+    mockMvc.perform(post("/api/users")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser(roles = "REVIEWER")
+  @DisplayName("POST /api/users debe exigir un administrador")
+  void shouldRequireAdminToCreateUsers() throws Exception {
+    mockMvc.perform(post("/api/users")).andExpect(status().isForbidden());
   }
 
   @Test

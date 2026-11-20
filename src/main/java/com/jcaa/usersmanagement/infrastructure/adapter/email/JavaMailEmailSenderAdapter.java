@@ -41,6 +41,10 @@ public class JavaMailEmailSenderAdapter implements EmailSenderPort {
 
   @Override
   public void send(final EmailDestinationModel destination) {
+    if (fromAddress.isBlank()) {
+      log.debug("[JavaMailEmailSenderAdapter] SMTP desactivado: no hay remitente configurado.");
+      return;
+    }
     try {
       final MimeMessage message = buildMessage(destination);
       Transport.send(message);

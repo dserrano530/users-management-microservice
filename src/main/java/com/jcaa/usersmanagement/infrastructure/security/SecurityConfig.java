@@ -48,7 +48,7 @@ public class SecurityConfig {
                     .requestMatchers(OPEN_API_PATHS)
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, USERS_PATH)
-                    .permitAll()
+                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, USERS_PATH, USERS_DETAIL_PATH)
                     .hasAnyRole("ADMIN", "REVIEWER")
                     .requestMatchers(HttpMethod.PUT, USERS_DETAIL_PATH)
