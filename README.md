@@ -22,6 +22,29 @@ Indica que la API responde; no comprueba MySQL ni el proveedor de correo.
 
 En Windows se puede utilizar `mvnw.cmd`.
 
+## Secretos para desarrollo local
+
+Copiar `application-secrets.properties.example` como
+`.environments/application-secrets.properties` y reemplazar los valores de ejemplo.
+Este archivo contiene la conexion local a MySQL, la semilla JWT y las credenciales de
+Brevo. La carpeta `.environments` esta excluida de Git y del contexto de Docker.
+
+En produccion no se utiliza este archivo: los secretos deben configurarse mediante las
+variables de entorno `DB_*`, `JWT_SECRET` y `BREVO_*` del proveedor de despliegue.
+
+## Docker Compose local
+
+Copiar `compose.env.example` como `.env`, reemplazar todos los valores y ejecutar:
+
+```bash
+docker compose up --build
+```
+
+Compose se detiene con un error si falta `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`,
+`JWT_SECRET`, `BREVO_API_KEY` o `BREVO_FROM_ADDRESS`. El archivo `.env` esta excluido
+de Git y del contexto de construccion Docker. Los puertos de MySQL y la API se publican
+solo en `127.0.0.1`.
+
 ## Despliegue en Render
 
 El archivo `render.yaml` define el servicio web, el build con Docker y el despliegue
@@ -30,6 +53,8 @@ automático de cada commit que llegue a la rama `main`.
 1. Crear un Blueprint en Render y seleccionar este repositorio.
 2. Completar en el panel `DB_HOST`, `DB_PORT`, `DB_USERNAME` y `DB_PASSWORD`.
    Render genera `JWT_SECRET` al crear el servicio.
+   Para un servicio existente, configurar `BREVO_API_KEY` y `BREVO_FROM_ADDRESS`
+   en **Environment**.
 3. Usar una instancia MySQL accesible desde Internet o desde la red privada de
    Render y ejecutar `src/main/resources/schema.sql` una vez para crear el esquema.
 4. Desplegar el Blueprint. La API quedará disponible en el subdominio
@@ -38,6 +63,19 @@ automático de cada commit que llegue a la rama `main`.
 Las credenciales nunca deben guardarse en `application.properties` ni en
 `render.yaml`. Para desarrollo local, deben proporcionarse como variables de entorno.
 
-Render Free bloquea los puertos SMTP 25, 465 y 587. Las notificaciones SMTP se
-omiten si `SMTP_FROM_ADDRESS` está vacío. Para crear usuarios mediante
+Para crear usuarios mediante
 `POST /api/users` se requiere un token de administrador.
+
+## Notificaciones por correo
+
+Los correos transaccionales se envian con `POST /v3/smtp/email` de Brevo. La llamada
+se ejecuta fuera del hilo HTTP en el executor `notificationExecutor` y dispone de
+timeouts, reintentos para errores de red/408/429/5xx con backoff exponencial, circuit
+breaker e idempotencia para evitar duplicados durante los reintentos.
+
+Para habilitar los envíos, define `BREVO_API_KEY` y `BREVO_FROM_ADDRESS` con
+un remitente verificado. Si ambos valores están vacíos, la API funciona con
+las notificaciones desactivadas. Los mensajes no incluyen contraseñas.
+Los parametros de resiliencia `BREVO_CONNECT_TIMEOUT`,
+`BREVO_READ_TIMEOUT`, `BREVO_RETRY_*` y `BREVO_CIRCUIT_*` son opcionales y tienen
+valores predeterminados en `application.properties`.
