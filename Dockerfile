@@ -7,6 +7,9 @@ RUN mvn --batch-mode --no-transfer-progress clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
 
+COPY deploy/aiven-project-ca.pem /tmp/aiven-project-ca.pem
+RUN keytool -importcert -noprompt -cacerts -storepass changeit -alias aiven-project-ca -file /tmp/aiven-project-ca.pem && rm /tmp/aiven-project-ca.pem
+
 RUN groupadd --system spring && useradd --system --gid spring spring
 WORKDIR /app
 COPY --from=build --chown=spring:spring /workspace/target/users-management-*.jar app.jar
