@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +26,6 @@ public class EmailNotificationService {
 
   private static final String TOKEN_NAME     = "name";
   private static final String TOKEN_EMAIL    = "email";
-  private static final String TOKEN_PASSWORD = "password";
   private static final String TOKEN_ROLE     = "role";
   private static final String TOKEN_STATUS   = "status";
 
@@ -35,7 +35,7 @@ public class EmailNotificationService {
   private final EmailSenderPort emailSenderPort;
 
   @Async("notificationExecutor")
-  public void notifyUserCreated(final UserModel user, final String plainPassword) {
+  public void notifyUserCreated(final UserModel user) {
     final String template = loadTemplate("user-created.html");
     final String body =
         renderTemplate(
@@ -43,7 +43,6 @@ public class EmailNotificationService {
             Map.of(
                 TOKEN_NAME,     user.getName().value(),
                 TOKEN_EMAIL,    user.getEmail().value(),
-                TOKEN_PASSWORD, plainPassword,
                 TOKEN_ROLE,     user.getRole().name()));
     final EmailDestinationModel destination = buildDestination(user, SUBJECT_CREATED, body);
     sendOrLog(destination);
@@ -91,7 +90,8 @@ public class EmailNotificationService {
     String result = template;
     for (final Map.Entry<String, String> tokenEntry : values.entrySet()) {
       final String token = "{{" + tokenEntry.getKey() + "}}";
-      result = result.replace(token, tokenEntry.getValue());
+      final String escaped = HtmlUtils.htmlEscape(tokenEntry.getValue(), StandardCharsets.UTF_8.name());
+      result = result.replace(token, escaped);
     }
     return result;
   }
